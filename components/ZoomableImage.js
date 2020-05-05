@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseStation from './BaseStation';
-import { StyleSheet, ScrollView, Image, View, ShadowPropTypesIOS } from 'react-native';
+import { StyleSheet, ScrollView, Image } from 'react-native';
 
 const ZoomableImage = props => {
     const baseStationDimensions = Image.resolveAssetSource(props.baseStationSrc);

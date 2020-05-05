@@ -6,7 +6,10 @@ import {
     Dimensions
 } from 'react-native';
 
-import ZoomableImage from './components/ZoomableImage';
+import MainMenu from './screens/MainMenu';
+import AddRemoteScreen from './screens/AddRemoteScreen';
+import ViewRemotesScreen from './screens/ViewRemotesScreen';
+import SettingsScreen from './screens/SettingsScreen';
 // import DocumentPicker from 'react-native-document-picker';
 
 const window = Dimensions.get("window");
@@ -15,6 +18,11 @@ const App = () => {
     const [stationsUpdated, setStationsUpdated] = useState(true);
     const [dimensions, setDimensions] = useState(window);
     const [baseStations, setBaseStations] = useState([]);
+    const [remotes, setRemotes] = useState([]);
+    const [isAddRemoteMode, setIsAddRemoteMode] = useState(false);
+    const [isViewRemotesMode, setIsViewRemotesMode] = useState(false);
+    const [isSettingsMode, setIsSettingsMode] = useState(false);
+
 
     const printDimensions = (type, dimensions) => {
         console.log(type + ": " + dimensions.width + " X " + dimensions.height);
@@ -56,7 +64,7 @@ const App = () => {
     };
 
     const removeBaseStationHandler = stationId => {
-        console.log("Removing: " + stationId);
+        console.log("Removing base station: " + stationId);
         setBaseStations(currentBaseStations => {
             return currentBaseStations.filter(station => station.id !== stationId);
         });
@@ -70,10 +78,10 @@ const App = () => {
         // console.log("locationX: " + gestureState.nativeEvent.locationX);
         // console.log("locationY: " + gestureState.nativeEvent.locationY);
         // For debugging the zoom drag event
-        xCoord = gestureState.nativeEvent.pageX - gestureState.nativeEvent.locationX;
-        yCoord = gestureState.nativeEvent.pageY - gestureState.nativeEvent.locationY;
-        updatedBaseStations = baseStations;
-        console.log("Moving: " + stationId + " to: (" + xCoord + ", " + yCoord + ")")
+        const xCoord = gestureState.nativeEvent.pageX - gestureState.nativeEvent.locationX;
+        const yCoord = gestureState.nativeEvent.pageY - gestureState.nativeEvent.locationY;
+        const updatedBaseStations = baseStations;
+        console.log("Moving: " + stationId + " to: (" + xCoord + ", " + yCoord + ")");
         for (let i = 0; i < updatedBaseStations.length; i++) {
             if (updatedBaseStations[i].id === stationId) {
                 updatedBaseStations[i].xCoord = Math.round(xCoord);
@@ -86,6 +94,46 @@ const App = () => {
 
     const handleUpdate = () => {
         setStationsUpdated(true);
+    };
+
+    const saveStationsHandler = () => {
+        // fetch()
+    };
+
+    const addRemoteHandler = name => {
+        if (name.length === 0) {
+            return;
+        }
+        console.log(name)
+        // Post to the API here
+        setRemotes(currentRemotes => [
+            ...currentRemotes,
+            { id: Math.random().toString(), employeeName: name }
+        ]);
+        setIsAddRemoteMode(false);
+    };
+
+    const cancelRemoteHandler = () => {
+        setIsAddRemoteMode(false);
+    };
+
+    const cancelViewRemotesHandler = () => {
+        setIsViewRemotesMode(false);
+    };
+
+    const removeRemoteHandler = remoteId => {
+        console.log("Removing remote: " + remoteId);
+        setRemotes(currentRemotes => {
+            return currentRemotes.filter(remote => remote.id !== remoteId);
+        });
+    };
+
+    const onClickAddRemoteHandler = () => {
+        setIsAddRemoteMode(true);
+    };
+
+    const onClickViewRemotesHandler = () => {
+        setIsViewRemotesMode(true);
     };
 
     // async function pickDocumentHandler() {
@@ -108,51 +156,38 @@ const App = () => {
     //     }
     // };
 
+    let content =   <MainMenu 
+                        dimensions={dimensions}
+                        baseStations={baseStations}
+                        removeBaseStationHandler={removeBaseStationHandler}
+                        updateLocation={updateLocation}
+                        stationsUpdated={stationsUpdated}
+                        askUpdate={handleUpdate}
+                        addBaseStationHandler={addBaseStationHandler}
+                        saveStationsHandler={saveStationsHandler}
+                        setAddRemoteMode={onClickAddRemoteHandler}
+                        setViewRemotesMode={onClickViewRemotesHandler}
+                    />;
+
+    if (isAddRemoteMode) {
+        content = <AddRemoteScreen onAddRemote={addRemoteHandler} onCancelRemoteAddition={cancelRemoteHandler} />;
+    } else if (isViewRemotesMode) {
+        content = <ViewRemotesScreen remotes={remotes} onCancelViewRemotes={cancelViewRemotesHandler} onRemoveRemote={removeRemoteHandler} />
+    } else if (isSettingsMode) {
+        content = <SettinsScreen />
+    }
+
     return (
-        <View style={styles.background}>
-            <ZoomableImage
-                windowDimensions={dimensions}
-                floorPlanSrc={require('./photos/sampleFloorPlan.jpg')}
-                baseStationSrc={require('./photos/baseStation.png')}
-                baseStations={baseStations}
-                removeStation={removeBaseStationHandler}
-                updateLocation={updateLocation}
-                stationsUpdated={stationsUpdated}
-                askUpdate={handleUpdate}
-            />
-            <View style={styles.buttonContainer}>
-                <Button
-                    title="Add Base Station"
-                    color='green'
-                    onPress={addBaseStationHandler}
-                />
-                <Button
-                    title="Settings"
-                    color='#808080'
-                    // onPress={pickDocumentHandler}
-                />
-            </View>
+        <View style={styles.screen}>
+            {content}
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    background: {
+    screen: {
         flex: 1,
-        backgroundColor: 'white',
-        justifyContent: 'flex-end',
-        alignItems: 'center'
-    },
-    buttonContainer: {
-        width: '50%',
-        flexDirection: 'row',
-        position: 'absolute',
-        justifyContent: 'center'
-    },
-    text: {
-        padding: 30,
-        color: 'blue'
-    },
+    }
 });
 
 export default App;

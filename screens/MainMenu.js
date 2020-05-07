@@ -18,31 +18,37 @@ const MainMenu = props => {
                 askUpdate={props.askUpdate}
             />
             <View style={styles.buttonContainer}>
-                <Button
-                    title="Add Base Station"
-                    color='green'
-                    onPress={props.addBaseStationHandler}
-                />
-                <Button
-                    title="Save Stations"
-                    color='#007ACC'
-                    onPress={props.saveStationsHandler}
-                />
-                <Button
-                    title="Add Remote"
-                    color='green'
-                    onPress={props.setAddRemoteMode}
-                />
-                <Button
-                    title="View Remotes"
-                    color='red'
-                    onPress={props.setViewRemotesMode}
-                />
-                <Button
-                    title="Settings"
-                    color='#808080'
-                // onPress={pickDocumentHandler}
-                />
+                <View style={styles.buttonCategories}>
+                    <Button
+                        title="Add Base Station"
+                        color='green'
+                        onPress={props.addBaseStationHandler}
+                    />
+                    <Button
+                        title="Save Stations"
+                        color='#007ACC'
+                        onPress={props.saveStationsHandler}
+                    />
+                </View>
+                <View style={styles.buttonCategories}>
+                    <Button
+                        title="Add Remote"
+                        color='green'
+                        onPress={props.setAddRemoteMode}
+                    />
+                    <Button
+                        title="View Remotes"
+                        color='red'
+                        onPress={props.setViewRemotesMode}
+                    />
+                </View>
+                <View style={styles.buttonCategories}>
+                    <Button
+                        title="Settings"
+                        color='#808080'
+                    // onPress={pickDocumentHandler}
+                    />
+                </View>
             </View>
         </View>
     );
@@ -59,7 +65,10 @@ const styles = StyleSheet.create({
         width: '50%',
         flexDirection: 'row',
         position: 'absolute',
-        justifyContent: 'center'
+        justifyContent: 'space-around',
+    },
+    buttonCategories: {
+        flexDirection: 'row'
     },
     text: {
         padding: 30,

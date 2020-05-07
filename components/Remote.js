@@ -13,6 +13,7 @@ const Remote = props => {
                 <View style={styles.newEmployeeButton}>
                     <Button
                         title="Assign New Employee"
+                        onPress={props.onAssignNewEmployee.bind(this, props.id)}
                     />
                 </View>
                 <View style={styles.deleteButton}>
@@ -39,6 +40,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     textStyle: {
+        fontSize: 30,
         color: 'black',
     },
     buttonContainer: {

@@ -9,6 +9,7 @@ import {
 import MainMenu from './screens/MainMenu';
 import AddRemoteScreen from './screens/AddRemoteScreen';
 import ViewRemotesScreen from './screens/ViewRemotesScreen';
+import AssignNewEmployeeScreen from './screens/AssignNewEmployeeScreen';
 import SettingsScreen from './screens/SettingsScreen';
 // import DocumentPicker from 'react-native-document-picker';
 
@@ -36,6 +37,8 @@ const App = () => {
     const [isSettingsMode, setIsSettingsMode] = useState(false);
     const [pullStations, setPullStations] = useState(true);
     const [pullRemotes, setPullRemotes] = useState(true);
+    const [isAssignNewEmployeeMode, setIsAssignNewEmployeeMode] = useState(false);
+    const [assignToRemote, setAssignToRemote] = useState(0);
 
     if (pullStations) {
         // API WORK
@@ -198,6 +201,28 @@ const App = () => {
         setIsViewRemotesMode(true);
     };
 
+    const assignNewEmployeeHandler = remoteId => {
+        console.log('assigning new employee');
+        setAssignToRemote(remoteId);
+        setIsAssignNewEmployeeMode(true);
+    };
+
+    const saveNewEmployeeHandler = (remoteId, name) => {
+        for (let i = 0; i < remotes.length; i++) {
+            if (remotes[i].r_id === remoteId) {
+                remotes[i].u_id = name;
+                const url = remotesEndpoint + '/' + remotes[i].r_id;
+                console.log(sendHttpRequest('DELETE', url, remotes[i]));
+                console.log(sendHttpRequest('POST', url, remotes[i]));
+            }
+        }
+        setIsAssignNewEmployeeMode(false);
+    };
+
+    const cancelSaveNewEmployeeHandler = () => {
+        setIsAssignNewEmployeeMode(false);
+    };
+
     const setRoomHandler = stationId => {
         console.log("I WANT TO SET THE LOCATION");
         // for (let i = 0; i < updatedBaseStations.length; i++) {
@@ -243,9 +268,21 @@ const App = () => {
     />;
 
     if (isAddRemoteMode) {
-        content = <AddRemoteScreen onAddRemote={addRemoteHandler} onCancelRemoteAddition={cancelRemoteHandler} />;
+        content = <AddRemoteScreen 
+                    onAddRemote={addRemoteHandler} 
+                    onCancelRemoteAddition={cancelRemoteHandler} 
+                  />;
     } else if (isViewRemotesMode) {
-        content = <ViewRemotesScreen remotes={remotes} onCancelViewRemotes={cancelViewRemotesHandler} onRemoveRemote={removeRemoteHandler} />
+        content = <ViewRemotesScreen 
+                    assignNewEmployeeMode={isAssignNewEmployeeMode}
+                    onSaveNewEmployee={saveNewEmployeeHandler} 
+                    onCancelSaveNewEmployee={cancelSaveNewEmployeeHandler}
+                    remoteId={assignToRemote}
+                    remotes={remotes} 
+                    onAssignNewEmployee={assignNewEmployeeHandler}
+                    onCancelViewRemotes={cancelViewRemotesHandler} 
+                    onRemoveRemote={removeRemoteHandler} 
+                  />;
     } else if (isSettingsMode) {
         content = <SettinsScreen />
     }

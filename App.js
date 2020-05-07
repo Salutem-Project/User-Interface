@@ -13,6 +13,7 @@ import SettingsScreen from './screens/SettingsScreen';
 // import DocumentPicker from 'react-native-document-picker';
 
 const window = Dimensions.get("window");
+const baseUrl = 'athen.matthewpogue.com';
 
 const App = () => {
     const [stationsUpdated, setStationsUpdated] = useState(true);
@@ -22,7 +23,24 @@ const App = () => {
     const [isAddRemoteMode, setIsAddRemoteMode] = useState(false);
     const [isViewRemotesMode, setIsViewRemotesMode] = useState(false);
     const [isSettingsMode, setIsSettingsMode] = useState(false);
+    const [pullStations, setPullStations] = useState(true);
+    const [pullRemotes, setPullRemotes] = useState(true);
 
+    if (pullStations) {
+        // API WORK
+        let url = baseUrl + '/endpoint matt is making';
+        databaseStations = [];
+        setBaseStations(databaseStations);
+        setPullStations(false);
+    }
+
+    if (pullRemotes) {
+        // API WORK
+        let url = baseUrl + '/endpoint matt is making';
+        databaseRemotes = [];
+        setRemotes(databaseRemotes);
+        setPullRemotes(false);
+    }
 
     const printDimensions = (type, dimensions) => {
         console.log(type + ": " + dimensions.width + " X " + dimensions.height);
@@ -57,13 +75,15 @@ const App = () => {
             {
                 id: Math.random().toString(),
                 xCoord: 0,
-                yCoord: 0
+                yCoord: 0,
+                updateOnSave: true
             }
         ]);
         setStationsUpdated(false);
     };
 
     const removeBaseStationHandler = stationId => {
+        // API WORK
         console.log("Removing base station: " + stationId);
         setBaseStations(currentBaseStations => {
             return currentBaseStations.filter(station => station.id !== stationId);
@@ -97,6 +117,15 @@ const App = () => {
     };
 
     const saveStationsHandler = () => {
+        // API WORK
+        let url = "";
+        baseStations.forEach(station => {
+            if (station.updateOnSave) {
+                url = baseUrl + '/' + station.id + '/station';
+                station.updateOnSave = false;
+                console.log(url);
+            }
+        });
         // fetch()
     };
 
@@ -104,8 +133,8 @@ const App = () => {
         if (name.length === 0) {
             return;
         }
-        console.log(name)
-        // Post to the API here
+        console.log(name);
+        // API WORK
         setRemotes(currentRemotes => [
             ...currentRemotes,
             { id: Math.random().toString(), employeeName: name }
@@ -122,6 +151,7 @@ const App = () => {
     };
 
     const removeRemoteHandler = remoteId => {
+        // API WORK
         console.log("Removing remote: " + remoteId);
         setRemotes(currentRemotes => {
             return currentRemotes.filter(remote => remote.id !== remoteId);
@@ -156,18 +186,18 @@ const App = () => {
     //     }
     // };
 
-    let content =   <MainMenu 
-                        dimensions={dimensions}
-                        baseStations={baseStations}
-                        removeBaseStationHandler={removeBaseStationHandler}
-                        updateLocation={updateLocation}
-                        stationsUpdated={stationsUpdated}
-                        askUpdate={handleUpdate}
-                        addBaseStationHandler={addBaseStationHandler}
-                        saveStationsHandler={saveStationsHandler}
-                        setAddRemoteMode={onClickAddRemoteHandler}
-                        setViewRemotesMode={onClickViewRemotesHandler}
-                    />;
+    let content = <MainMenu
+        dimensions={dimensions}
+        baseStations={baseStations}
+        removeBaseStationHandler={removeBaseStationHandler}
+        updateLocation={updateLocation}
+        stationsUpdated={stationsUpdated}
+        askUpdate={handleUpdate}
+        addBaseStationHandler={addBaseStationHandler}
+        saveStationsHandler={saveStationsHandler}
+        setAddRemoteMode={onClickAddRemoteHandler}
+        setViewRemotesMode={onClickViewRemotesHandler}
+    />;
 
     if (isAddRemoteMode) {
         content = <AddRemoteScreen onAddRemote={addRemoteHandler} onCancelRemoteAddition={cancelRemoteHandler} />;

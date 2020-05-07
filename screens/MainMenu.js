@@ -11,6 +11,7 @@ const MainMenu = props => {
                 floorPlanSrc={require('../photos/sampleFloorPlan.jpg')}
                 baseStationSrc={require('../photos/baseStation.png')}
                 baseStations={props.baseStations}
+                handleSetRoom={props.handleSetRoom}
                 removeStation={props.removeBaseStationHandler}
                 updateLocation={props.updateLocation}
                 stationsUpdated={props.stationsUpdated}

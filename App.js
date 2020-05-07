@@ -13,7 +13,18 @@ import SettingsScreen from './screens/SettingsScreen';
 // import DocumentPicker from 'react-native-document-picker';
 
 const window = Dimensions.get("window");
-const baseUrl = 'athen.matthewpogue.com';
+const remotesEndpoint = 'http://athena.matthewpogue.com:1080/remote';
+const stationsEndpoint = 'http://athena.matthewpogue.com:1080/station';
+
+const sendHttpRequest = (method, url, data) => {
+    return fetch(url, {
+        method: method,
+        body: JSON.stringify(data),
+        headers: data ? { 'Content-Type': 'application/json' } : {}
+    }).then(response => {
+        return response.json();
+    });
+};
 
 const App = () => {
     const [stationsUpdated, setStationsUpdated] = useState(true);
@@ -28,17 +39,21 @@ const App = () => {
 
     if (pullStations) {
         // API WORK
-        let url = baseUrl + '/endpoint matt is making';
-        databaseStations = [];
-        setBaseStations(databaseStations);
+        let url = stationsEndpoint + 's';
+        const response = sendHttpRequest('GET', url);
+        console.log(response);
+        response.then(stations => {
+            console.log(stations);
+            setBaseStations(stations.stations);
+        });
         setPullStations(false);
     }
 
     if (pullRemotes) {
         // API WORK
-        let url = baseUrl + '/endpoint matt is making';
-        databaseRemotes = [];
-        setRemotes(databaseRemotes);
+        let url = remotesEndpoint + 's';
+        const response = sendHttpRequest('GET', url);
+        response.then(remotes => setRemotes(remotes.remotes));
         setPullRemotes(false);
     }
 
@@ -47,15 +62,15 @@ const App = () => {
     };
 
     const printCoordinates = (type, coordinates) => {
-        console.log(type + ": (" + coordinates.xCoord + ", " + coordinates.yCoord + ")");
+        console.log(type + ": (" + coordinates.x_cord + ", " + coordinates.y_cord + ")");
     };
 
     const onChange = ({ window }) => {
         const updatedBaseStations = baseStations;
 
         for (let i = 0; i < updatedBaseStations.length; i++) {
-            updatedBaseStations[i].xCoord = (window.width * updatedBaseStations[i].xCoord) / dimensions.width;
-            updatedBaseStations[i].yCoord = (window.height * updatedBaseStations[i].yCoord) / dimensions.height;
+            updatedBaseStations[i].x_cord = (window.width * updatedBaseStations[i].x_cord) / dimensions.width;
+            updatedBaseStations[i].y_cord = (window.height * updatedBaseStations[i].y_cord) / dimensions.height;
         }
         setBaseStations(updatedBaseStations);
         setDimensions(window);
@@ -70,14 +85,19 @@ const App = () => {
     });
 
     const addBaseStationHandler = () => {
+        const newBaseStation = {
+            s_id: Math.floor(Math.random() * 10000000000).toString(),
+            location: 'A',
+            x_cord: 0,
+            y_cord: 0,
+            updateOnSave: true
+        };
+
+        const url = stationsEndpoint + '/' + newBaseStation.s_id;
+        console.log(sendHttpRequest('POST', url, newBaseStation));
         setBaseStations(currentBaseStations => [
             ...currentBaseStations,
-            {
-                id: Math.random().toString(),
-                xCoord: 0,
-                yCoord: 0,
-                updateOnSave: true
-            }
+            newBaseStation
         ]);
         setStationsUpdated(false);
     };
@@ -85,8 +105,10 @@ const App = () => {
     const removeBaseStationHandler = stationId => {
         // API WORK
         console.log("Removing base station: " + stationId);
+        url = stationsEndpoint + '/' + stationId;
+        sendHttpRequest('DELETE', url);
         setBaseStations(currentBaseStations => {
-            return currentBaseStations.filter(station => station.id !== stationId);
+            return currentBaseStations.filter(station => station.s_id !== stationId);
         });
         setStationsUpdated(false);
     }
@@ -98,17 +120,18 @@ const App = () => {
         // console.log("locationX: " + gestureState.nativeEvent.locationX);
         // console.log("locationY: " + gestureState.nativeEvent.locationY);
         // For debugging the zoom drag event
-        const xCoord = gestureState.nativeEvent.pageX - gestureState.nativeEvent.locationX;
-        const yCoord = gestureState.nativeEvent.pageY - gestureState.nativeEvent.locationY;
+        const x_cord = gestureState.nativeEvent.pageX - gestureState.nativeEvent.locationX;
+        const y_cord = gestureState.nativeEvent.pageY - gestureState.nativeEvent.locationY;
         const updatedBaseStations = baseStations;
-        console.log("Moving: " + stationId + " to: (" + xCoord + ", " + yCoord + ")");
+        console.log("Moving: " + stationId + " to: (" + x_cord + ", " + y_cord + ")");
         for (let i = 0; i < updatedBaseStations.length; i++) {
-            if (updatedBaseStations[i].id === stationId) {
-                updatedBaseStations[i].xCoord = Math.round(xCoord);
-                updatedBaseStations[i].yCoord = Math.round(yCoord);
+            if (updatedBaseStations[i].s_id === stationId) {
+                updatedBaseStations[i].x_cord = Math.round(x_cord);
+                updatedBaseStations[i].y_cord = Math.round(y_cord);
+                updatedBaseStations[i].updateOnSave = true;
             }
         }
-        setBaseStations(updatedBaseStations)
+        setBaseStations(updatedBaseStations);
         setStationsUpdated(false);
     };
 
@@ -117,28 +140,35 @@ const App = () => {
     };
 
     const saveStationsHandler = () => {
-        // API WORK
-        let url = "";
+        var url = "";
         baseStations.forEach(station => {
             if (station.updateOnSave) {
-                url = baseUrl + '/' + station.id + '/station';
+                url = stationsEndpoint + '/' + station.s_id;
+                console.log("Saving station");
+                sendHttpRequest('DELETE', url);
+                const response = sendHttpRequest('POST', url, station);
+                console.log(response);
                 station.updateOnSave = false;
-                console.log(url);
             }
         });
-        // fetch()
     };
 
     const addRemoteHandler = name => {
         if (name.length === 0) {
             return;
         }
-        console.log(name);
-        // API WORK
+
+        const newRemote = {
+            r_id: Math.floor(Math.random() * 10000000000).toString(),
+            u_id: name
+        };
+
+        const url = remotesEndpoint + '/' + newRemote.r_id;
         setRemotes(currentRemotes => [
             ...currentRemotes,
-            { id: Math.random().toString(), employeeName: name }
+            newRemote
         ]);
+        sendHttpRequest('POST', url, newRemote);
         setIsAddRemoteMode(false);
     };
 
@@ -152,9 +182,11 @@ const App = () => {
 
     const removeRemoteHandler = remoteId => {
         // API WORK
+        const url = remotesEndpoint + '/' + remoteId;
+        sendHttpRequest('DELETE', url);
         console.log("Removing remote: " + remoteId);
         setRemotes(currentRemotes => {
-            return currentRemotes.filter(remote => remote.id !== remoteId);
+            return currentRemotes.filter(remote => remote.r_id !== remoteId);
         });
     };
 
@@ -164,6 +196,16 @@ const App = () => {
 
     const onClickViewRemotesHandler = () => {
         setIsViewRemotesMode(true);
+    };
+
+    const setRoomHandler = stationId => {
+        console.log("I WANT TO SET THE LOCATION");
+        // for (let i = 0; i < updatedBaseStations.length; i++) {
+        //     if (updatedBaseStations[i].s_id === stationId) {
+        //         updatedBaseStations[i].x_cord = Math.round(x_cord);
+        //         updatedBaseStations[i].y_cord = Math.round(y_cord);
+        //     }
+        // }
     };
 
     // async function pickDocumentHandler() {
@@ -193,6 +235,7 @@ const App = () => {
         updateLocation={updateLocation}
         stationsUpdated={stationsUpdated}
         askUpdate={handleUpdate}
+        handleSetRoom={setRoomHandler}
         addBaseStationHandler={addBaseStationHandler}
         saveStationsHandler={saveStationsHandler}
         setAddRemoteMode={onClickAddRemoteHandler}

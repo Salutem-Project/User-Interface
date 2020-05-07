@@ -13,6 +13,7 @@ const ZoomableImage = props => {
                 baseStationDimensions={baseStationDimensions} 
                 baseStationSrc={props.baseStationSrc}
                 baseStations={props.baseStations}
+                handleSetRoom={props.handleSetRoom}
                 removeStation={props.removeStation}
                 updateLocation={props.updateLocation}
                 stationsUpdated={props.stationsUpdated}

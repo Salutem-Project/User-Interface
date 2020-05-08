@@ -18,6 +18,7 @@ const remotesEndpoint = 'http://athena.matthewpogue.com:1080/remote';
 const stationsEndpoint = 'http://athena.matthewpogue.com:1080/station';
 
 const sendHttpRequest = (method, url, data) => {
+    console.log(JSON.stringify(data));
     return fetch(url, {
         method: method,
         body: JSON.stringify(data),
@@ -42,13 +43,29 @@ const App = () => {
 
     if (pullStations) {
         // API WORK
+        let databaseStations = [];
         let url = stationsEndpoint + 's';
         const response = sendHttpRequest('GET', url);
         console.log(response);
         response.then(stations => {
-            console.log(stations);
-            setBaseStations(stations.stations);
+            console.log(stations.stations);
+            for (let i = 0; i < stations.stations.length; i++) {
+                const databaseStation = stations.stations[i];
+                let newStation = {
+                    s_id: databaseStation.s_id,
+                    x_cord: Number(databaseStation.x_cord),
+                    y_cord: Number(databaseStation.y_cord),
+                    additional_data: {
+                        location: databaseStation.location,
+                        updateOnSave: databaseStation.updateOnSave
+                    }
+                };
+
+                databaseStations.push(newStation);
+            }
+            setBaseStations(databaseStations);
         });
+    
         setPullStations(false);
     }
 
@@ -90,10 +107,12 @@ const App = () => {
     const addBaseStationHandler = () => {
         const newBaseStation = {
             s_id: Math.floor(Math.random() * 10000000000).toString(),
-            location: 'A',
             x_cord: 0,
             y_cord: 0,
-            updateOnSave: true
+            additional_data: {
+                location: 'A',
+                updateOnSave: true
+            }
         };
 
         const url = stationsEndpoint + '/' + newBaseStation.s_id;
@@ -108,7 +127,7 @@ const App = () => {
     const removeBaseStationHandler = stationId => {
         // API WORK
         console.log("Removing base station: " + stationId);
-        url = stationsEndpoint + '/' + stationId;
+        const url = stationsEndpoint + '/' + stationId;
         sendHttpRequest('DELETE', url);
         setBaseStations(currentBaseStations => {
             return currentBaseStations.filter(station => station.s_id !== stationId);
@@ -131,7 +150,7 @@ const App = () => {
             if (updatedBaseStations[i].s_id === stationId) {
                 updatedBaseStations[i].x_cord = Math.round(x_cord);
                 updatedBaseStations[i].y_cord = Math.round(y_cord);
-                updatedBaseStations[i].updateOnSave = true;
+                updatedBaseStations[i].additional_data.updateOnSave = true;
             }
         }
         setBaseStations(updatedBaseStations);
@@ -145,13 +164,14 @@ const App = () => {
     const saveStationsHandler = () => {
         var url = "";
         baseStations.forEach(station => {
-            if (station.updateOnSave) {
+            if (station.additional_data.updateOnSave) {
+                station.additional_data.updateOnSave = false;
                 url = stationsEndpoint + '/' + station.s_id;
                 console.log("Saving station");
                 sendHttpRequest('DELETE', url);
                 const response = sendHttpRequest('POST', url, station);
                 console.log(response);
-                station.updateOnSave = false;
+                console.log(station);
             }
         });
     };
@@ -224,7 +244,7 @@ const App = () => {
     };
 
     const setRoomHandler = stationId => {
-        console.log("I WANT TO SET THE LOCATION");
+        // console.log("I WANT TO SET THE LOCATION");
         // for (let i = 0; i < updatedBaseStations.length; i++) {
         //     if (updatedBaseStations[i].s_id === stationId) {
         //         updatedBaseStations[i].x_cord = Math.round(x_cord);

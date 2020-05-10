@@ -9,8 +9,6 @@ import {
 import MainMenu from './screens/MainMenu';
 import AddRemoteScreen from './screens/AddRemoteScreen';
 import ViewRemotesScreen from './screens/ViewRemotesScreen';
-import AssignNewEmployeeScreen from './screens/AssignNewEmployeeScreen';
-import SettingsScreen from './screens/SettingsScreen';
 // import DocumentPicker from 'react-native-document-picker';
 
 const window = Dimensions.get("window");
@@ -18,6 +16,7 @@ const remotesEndpoint = 'http://athena.matthewpogue.com:1080/remote';
 const stationsEndpoint = 'http://athena.matthewpogue.com:1080/station';
 
 const sendHttpRequest = (method, url, data) => {
+    console.log(url);
     console.log(JSON.stringify(data));
     return fetch(url, {
         method: method,
@@ -35,11 +34,12 @@ const App = () => {
     const [remotes, setRemotes] = useState([]);
     const [isAddRemoteMode, setIsAddRemoteMode] = useState(false);
     const [isViewRemotesMode, setIsViewRemotesMode] = useState(false);
-    const [isSettingsMode, setIsSettingsMode] = useState(false);
     const [pullStations, setPullStations] = useState(true);
     const [pullRemotes, setPullRemotes] = useState(true);
     const [isAssignNewEmployeeMode, setIsAssignNewEmployeeMode] = useState(false);
     const [assignToRemote, setAssignToRemote] = useState(0);
+    const [isTrackingMode, setIsTrackingMode] = useState(false);
+    const [trackerCoords, setTrackerCoords] = useState({x_cord: 100, y_cord: 100});
 
     if (pullStations) {
         // API WORK
@@ -73,7 +73,7 @@ const App = () => {
         // API WORK
         let url = remotesEndpoint + 's';
         const response = sendHttpRequest('GET', url);
-        response.then(remotes => setRemotes(remotes.remotes));
+        console.log(response.then(remotes => setRemotes(remotes.remotes)));
         setPullRemotes(false);
     }
 
@@ -104,6 +104,15 @@ const App = () => {
         };
     });
 
+    // useEffect(() => {
+    //     if (isTrackingMode) {
+    //         setTimeout(setTrackerCoords({x_cord: trackerCoords.x_cord + 1, y_cord: 100}), 3000);
+    //     }
+    //     if (trackerCoords.x_cord > 500) {
+    //         setIsTrackingMode(false);
+    //     }
+    // });
+
     const addBaseStationHandler = () => {
         const newBaseStation = {
             s_id: Math.floor(Math.random() * 10000000000).toString(),
@@ -111,7 +120,7 @@ const App = () => {
             y_cord: 0,
             additional_data: {
                 location: 'A',
-                updateOnSave: true
+                updateOnSave: false
             }
         };
 
@@ -128,7 +137,7 @@ const App = () => {
         // API WORK
         console.log("Removing base station: " + stationId);
         const url = stationsEndpoint + '/' + stationId;
-        sendHttpRequest('DELETE', url);
+        console.log(sendHttpRequest('DELETE', url));
         setBaseStations(currentBaseStations => {
             return currentBaseStations.filter(station => station.s_id !== stationId);
         });
@@ -168,9 +177,8 @@ const App = () => {
                 station.additional_data.updateOnSave = false;
                 url = stationsEndpoint + '/' + station.s_id;
                 console.log("Saving station");
-                sendHttpRequest('DELETE', url);
-                const response = sendHttpRequest('POST', url, station);
-                console.log(response);
+                console.log(sendHttpRequest('DELETE', url));
+                console.log(sendHttpRequest('POST', url, station));
                 console.log(station);
             }
         });
@@ -183,7 +191,8 @@ const App = () => {
 
         const newRemote = {
             r_id: Math.floor(Math.random() * 10000000000).toString(),
-            u_id: name
+            u_id: name,
+            additional_data: {}
         };
 
         const url = remotesEndpoint + '/' + newRemote.r_id;
@@ -191,7 +200,7 @@ const App = () => {
             ...currentRemotes,
             newRemote
         ]);
-        sendHttpRequest('POST', url, newRemote);
+        console.log(sendHttpRequest('POST', url, newRemote));
         setIsAddRemoteMode(false);
     };
 
@@ -243,6 +252,22 @@ const App = () => {
         setIsAssignNewEmployeeMode(false);
     };
 
+    const stopTrackingSimulation = () => {
+        setTrackerCoords({x_cord: 100, y_cord: 100});
+        setIsTrackingMode(false);
+    };
+    
+    const simulateTrackingHandler = () => {
+        setIsTrackingMode(true);
+    };
+
+    const updateTrackingCoordsHandler = () => {
+        setTimeout(setTrackerCoords({x_cord: trackerCoords.x_cord + 1, y_cord: 100}), 3000);
+        if (trackerCoords.x_cord > 500) {
+            setIsTrackingMode(false);
+        }
+    };
+
     const setRoomHandler = stationId => {
         // console.log("I WANT TO SET THE LOCATION");
         // for (let i = 0; i < updatedBaseStations.length; i++) {
@@ -285,6 +310,11 @@ const App = () => {
         saveStationsHandler={saveStationsHandler}
         setAddRemoteMode={onClickAddRemoteHandler}
         setViewRemotesMode={onClickViewRemotesHandler}
+        simulateTracking={simulateTrackingHandler}
+        cancelTracking={stopTrackingSimulation}
+        isTrackingMode={isTrackingMode}
+        trackerCoords={trackerCoords}
+        updateTrackingCoords={updateTrackingCoordsHandler}
     />;
 
     if (isAddRemoteMode) {
@@ -303,8 +333,6 @@ const App = () => {
                     onCancelViewRemotes={cancelViewRemotesHandler} 
                     onRemoveRemote={removeRemoteHandler} 
                   />;
-    } else if (isSettingsMode) {
-        content = <SettinsScreen />
     }
 
     return (

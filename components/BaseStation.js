@@ -10,6 +10,7 @@ const BaseStation = props => {
         for (let i = 0; i < props.baseStations.length; i++) {
             content.push(
                 <Draggable
+                    key={props.baseStations[i].s_id}
                     x={props.baseStations[i].x_cord}
                     y={props.baseStations[i].y_cord}
                     minX={-props.baseStationDimensions.width / (baseStationFactor * 2)}

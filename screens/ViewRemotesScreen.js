@@ -14,7 +14,6 @@ const ViewRemotesScreen = props => {
             onCancelSaveNewEmployee={props.onCancelSaveNewEmployee}
         />;
     } else if (props.remotes.length === 0) {
-        console.log("here");
         content =
             <View style={styles.screen}>
                 <View style={styles.heading}>

@@ -10,12 +10,16 @@ const MainMenu = props => {
                 windowDimensions={props.dimensions}
                 floorPlanSrc={require('../photos/sampleFloorPlan.jpg')}
                 baseStationSrc={require('../photos/baseStation.png')}
+                trackingDotSrc={require('../photos/trackingDot.png')}
                 baseStations={props.baseStations}
                 handleSetRoom={props.handleSetRoom}
                 removeStation={props.removeBaseStationHandler}
                 updateLocation={props.updateLocation}
                 stationsUpdated={props.stationsUpdated}
                 askUpdate={props.askUpdate}
+                isTrackingMode={props.isTrackingMode}
+                trackerCoords={props.trackerCoords}
+                updateTrackingCoords={props.updateTrackingCoords}
             />
             <View style={styles.buttonContainer}>
                 <View style={styles.buttonCategories}>
@@ -44,9 +48,14 @@ const MainMenu = props => {
                 </View>
                 <View style={styles.buttonCategories}>
                     <Button
-                        title="Settings"
-                        color='#808080'
-                    // onPress={pickDocumentHandler}
+                        title="Simulate"
+                        color='#007ACC'
+                        onPress={props.simulateTracking}
+                    />
+                    <Button
+                        title="Stop Simulation"
+                        color='red'
+                        onPress={props.cancelTracking}
                     />
                 </View>
             </View>

@@ -45,18 +45,6 @@ const MainMenu = props => {
                         onPress={props.setViewRemotesMode}
                     />
                 </View>
-                <View style={styles.buttonCategories}>
-                    <Button
-                        title="Simulate"
-                        color='#007ACC'
-                        onPress={props.simulateTracking}
-                    />
-                    {/* <Button
-                        title="Stop Simulation"
-                        color='red'
-                        onPress={props.cancelTracking}
-                    /> */}
-                </View>
             </View>
         </View>
     );

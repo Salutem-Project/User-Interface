@@ -11,6 +11,9 @@ import AddRemoteScreen from './screens/AddRemoteScreen';
 import ViewRemotesScreen from './screens/ViewRemotesScreen';
 // import DocumentPicker from 'react-native-document-picker';
 
+// When more base stations are made, Add their mac addresses here.
+let availableStations = ['30:AE:A4:9E:20:47', '24:0A:C4:26:75:DF'];
+let availableRemotes = ['24:6f:28:a1:e4:fa'];
 const window = Dimensions.get("window");
 const remotesEndpoint = 'http://athena.matthewpogue.com:1080/remote';
 const stationsEndpoint = 'http://athena.matthewpogue.com:1080/station';
@@ -38,26 +41,8 @@ const App = () => {
     const [pullRemotes, setPullRemotes] = useState(true);
     const [isAssignNewEmployeeMode, setIsAssignNewEmployeeMode] = useState(false);
     const [assignToRemote, setAssignToRemote] = useState(0);
-    const [isTrackingMode, setIsTrackingMode] = useState(false);
-    const trackerXCoord = useRef(new Animated.Value(380)).current;
-    const trackerYCoord = useRef(new Animated.Value(259)).current;
+    const [isTrackingMode, setIsTrackingMode] = useState(true);
 
-    setInterval(() => { 
-        const url = remotesEndpoint + 's';
-        sendHttpRequest('GET', url);
-    }, 3000);
-
-    const startAnimation = () => {
-        Animated.timing(trackerYCoord, {
-            toValue: 700,
-            duration: 8000
-        }).start(() => {
-            Animated.timing(trackerXCoord, {
-                toValue: 100,
-                duration: 6000
-            }).start();
-        });
-    };
 
     if (pullStations) {
         // API WORK
@@ -89,7 +74,12 @@ const App = () => {
         // API WORK
         let url = remotesEndpoint + 's';
         const response = sendHttpRequest('GET', url);
-        console.log(response.then(remotes => setRemotes(remotes.remotes)));
+        console.log(response.then(remotes => {
+            for (let i = 0; i < remotes.remotes.length; i++) {
+                availableRemotes.filter(remote => remote.r_id !== remotes.remotes.r_id);
+            }
+            setRemotes(remotes.remotes);
+        }));
         setPullRemotes(false);
     }
 
@@ -120,33 +110,30 @@ const App = () => {
         };
     });
 
-    // useEffect(() => {
-    //     if (isTrackingMode) {
-    //         setTimeout(setTrackerCoords({x_cord: trackerCoords.x_cord + 1, y_cord: 100}), 3000);
-    //     }
-    //     if (trackerCoords.x_cord > 500) {
-    //         setIsTrackingMode(false);
-    //     }
-    // });
-
     const addBaseStationHandler = () => {
-        const newBaseStation = {
-            s_id: Math.floor(Math.random() * 10000000000).toString(),
-            x_cord: 0,
-            y_cord: 0,
-            additional_data: {
-                location: 'A',
-                updateOnSave: false
-            }
-        };
+        if (availableStations.length > 0) {
+            const MAC = availableStations[availableStations.length - 1];
+            const newBaseStation = {
+                s_id: MAC,
+                x_cord: 0,
+                y_cord: 0,
+                additional_data: {
+                    location: 'A',
+                    updateOnSave: false
+                }
+            };
 
-        const url = stationsEndpoint + '/' + newBaseStation.s_id;
-        console.log(sendHttpRequest('POST', url, newBaseStation));
-        setBaseStations(currentBaseStations => [
-            ...currentBaseStations,
-            newBaseStation
-        ]);
-        setStationsUpdated(false);
+            const url = stationsEndpoint + '/' + newBaseStation.s_id;
+            console.log(sendHttpRequest('POST', url, newBaseStation));
+            setBaseStations(currentBaseStations => [
+                ...currentBaseStations,
+                newBaseStation
+            ]);
+            setStationsUpdated(false);
+            availableStations.pop();
+        } else {
+            alert("You have no more base stations to add");
+        }
     };
 
     const removeBaseStationHandler = stationId => {
@@ -158,6 +145,7 @@ const App = () => {
             return currentBaseStations.filter(station => station.s_id !== stationId);
         });
         setStationsUpdated(false);
+        availableStations.push(stationId);
     }
 
     const updateLocation = (stationId, gestureState) => {
@@ -205,18 +193,24 @@ const App = () => {
             return;
         }
 
-        const newRemote = {
-            r_id: Math.floor(Math.random() * 10000000000).toString(),
-            u_id: name,
-            additional_data: {}
-        };
+        if (availableRemotes.length > 0) {
+            const id = availableRemotes[availableRemotes.length - 1];
+            const newRemote = {
+                r_id: id,
+                u_id: name,
+                additional_data: {}
+            };
 
-        const url = remotesEndpoint + '/' + newRemote.r_id;
-        setRemotes(currentRemotes => [
-            ...currentRemotes,
-            newRemote
-        ]);
-        console.log(sendHttpRequest('POST', url, newRemote));
+            const url = remotesEndpoint + '/' + newRemote.r_id;
+            setRemotes(currentRemotes => [
+                ...currentRemotes,
+                newRemote
+            ]);
+            console.log(sendHttpRequest('POST', url, newRemote));
+            availableRemotes.pop();
+        } else {
+            alert("You have no remoes to add");
+        }
         setIsAddRemoteMode(false);
     };
 
@@ -236,6 +230,7 @@ const App = () => {
         setRemotes(currentRemotes => {
             return currentRemotes.filter(remote => remote.r_id !== remoteId);
         });
+        availableRemotes.push(remoteId);
     };
 
     const onClickAddRemoteHandler = () => {
@@ -266,15 +261,6 @@ const App = () => {
 
     const cancelSaveNewEmployeeHandler = () => {
         setIsAssignNewEmployeeMode(false);
-    };
-
-    const stopTrackingSimulation = () => {
-        setIsTrackingMode(false);
-    };
-
-    const simulateTrackingHandler = () => {
-        setIsTrackingMode(true);
-        startAnimation();
     };
 
     const setRoomHandler = stationId => {
@@ -319,10 +305,7 @@ const App = () => {
         saveStationsHandler={saveStationsHandler}
         setAddRemoteMode={onClickAddRemoteHandler}
         setViewRemotesMode={onClickViewRemotesHandler}
-        simulateTracking={simulateTrackingHandler}
-        cancelTracking={stopTrackingSimulation}
         isTrackingMode={isTrackingMode}
-        trackerCoords={{ x_cord: trackerXCoord, y_cord: trackerYCoord }}
     />;
 
     if (isAddRemoteMode) {

@@ -16,8 +16,8 @@ const remotesEndpoint = 'http://athena.matthewpogue.com:1080/remote';
 const stationsEndpoint = 'http://athena.matthewpogue.com:1080/station';
 
 const sendHttpRequest = (method, url, data) => {
-    console.log(url);
-    console.log(JSON.stringify(data));
+    // console.log(url);
+    // console.log(JSON.stringify(data));
     return fetch(url, {
         method: method,
         body: JSON.stringify(data),
@@ -42,6 +42,11 @@ const App = () => {
     const trackerXCoord = useRef(new Animated.Value(380)).current;
     const trackerYCoord = useRef(new Animated.Value(259)).current;
 
+    setInterval(() => { 
+        const url = remotesEndpoint + 's';
+        sendHttpRequest('GET', url);
+    }, 3000);
+
     const startAnimation = () => {
         Animated.timing(trackerYCoord, {
             toValue: 700,
@@ -59,9 +64,7 @@ const App = () => {
         let databaseStations = [];
         let url = stationsEndpoint + 's';
         const response = sendHttpRequest('GET', url);
-        console.log(response);
         response.then(stations => {
-            console.log(stations.stations);
             for (let i = 0; i < stations.stations.length; i++) {
                 const databaseStation = stations.stations[i];
                 let newStation = {

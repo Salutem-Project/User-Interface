@@ -6,7 +6,6 @@ const trackingDotFactor = 5;
 const TrackingDot = props => {
 
     let content = <View></View>;
-    console.log(props.isTrackingMode);
     if (props.isTrackingMode) {
         content =
             <Animated.Image

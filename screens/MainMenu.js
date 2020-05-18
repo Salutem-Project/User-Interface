@@ -19,7 +19,6 @@ const MainMenu = props => {
                 askUpdate={props.askUpdate}
                 isTrackingMode={props.isTrackingMode}
                 trackerCoords={props.trackerCoords}
-                updateTrackingCoords={props.updateTrackingCoords}
             />
             <View style={styles.buttonContainer}>
                 <View style={styles.buttonCategories}>
@@ -52,11 +51,11 @@ const MainMenu = props => {
                         color='#007ACC'
                         onPress={props.simulateTracking}
                     />
-                    <Button
+                    {/* <Button
                         title="Stop Simulation"
                         color='red'
                         onPress={props.cancelTracking}
-                    />
+                    /> */}
                 </View>
             </View>
         </View>

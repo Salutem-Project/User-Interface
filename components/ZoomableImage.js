@@ -10,7 +10,7 @@ const ZoomableImage = props => {
     return (
         <ScrollView style={styles.scrollStyle} minimumZoomScale={1} maximumZoomScale={5}>
             <Image source={props.floorPlanSrc} style={{resizeMode: 'stretch', width: props.windowDimensions.width, height: props.windowDimensions.height}} />
-            <TrackingDot isTrackingMode={props.isTrackingMode} updateTrackingCoords={props.updateTrackingCoords} trackingDotDimensions={trackingDotDimensions} coords={props.trackerCoords} trackingDotSrc={props.trackingDotSrc} floorPlanDimensions={props.windowDimensions} />
+            <TrackingDot isTrackingMode={props.isTrackingMode} trackingDotDimensions={trackingDotDimensions} coords={props.trackerCoords} trackingDotSrc={props.trackingDotSrc} />
             <BaseStation
                 floorPlanDimensions={props.windowDimensions} 
                 baseStationDimensions={baseStationDimensions} 

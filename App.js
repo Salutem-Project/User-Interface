@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     StyleSheet,
     View,
-    Button,
-    Dimensions
+    Dimensions,
+    Animated
 } from 'react-native';
 
 import MainMenu from './screens/MainMenu';
@@ -39,7 +39,20 @@ const App = () => {
     const [isAssignNewEmployeeMode, setIsAssignNewEmployeeMode] = useState(false);
     const [assignToRemote, setAssignToRemote] = useState(0);
     const [isTrackingMode, setIsTrackingMode] = useState(false);
-    const [trackerCoords, setTrackerCoords] = useState({x_cord: 100, y_cord: 100});
+    const trackerXCoord = useRef(new Animated.Value(380)).current;
+    const trackerYCoord = useRef(new Animated.Value(259)).current;
+
+    const startAnimation = () => {
+        Animated.timing(trackerYCoord, {
+            toValue: 700,
+            duration: 8000
+        }).start(() => {
+            Animated.timing(trackerXCoord, {
+                toValue: 100,
+                duration: 6000
+            }).start();
+        });
+    };
 
     if (pullStations) {
         // API WORK
@@ -65,7 +78,7 @@ const App = () => {
             }
             setBaseStations(databaseStations);
         });
-    
+
         setPullStations(false);
     }
 
@@ -253,19 +266,12 @@ const App = () => {
     };
 
     const stopTrackingSimulation = () => {
-        setTrackerCoords({x_cord: 100, y_cord: 100});
         setIsTrackingMode(false);
     };
-    
+
     const simulateTrackingHandler = () => {
         setIsTrackingMode(true);
-    };
-
-    const updateTrackingCoordsHandler = () => {
-        setTimeout(setTrackerCoords({x_cord: trackerCoords.x_cord + 1, y_cord: 100}), 3000);
-        if (trackerCoords.x_cord > 500) {
-            setIsTrackingMode(false);
-        }
+        startAnimation();
     };
 
     const setRoomHandler = stationId => {
@@ -313,26 +319,25 @@ const App = () => {
         simulateTracking={simulateTrackingHandler}
         cancelTracking={stopTrackingSimulation}
         isTrackingMode={isTrackingMode}
-        trackerCoords={trackerCoords}
-        updateTrackingCoords={updateTrackingCoordsHandler}
+        trackerCoords={{ x_cord: trackerXCoord, y_cord: trackerYCoord }}
     />;
 
     if (isAddRemoteMode) {
-        content = <AddRemoteScreen 
-                    onAddRemote={addRemoteHandler} 
-                    onCancelRemoteAddition={cancelRemoteHandler} 
-                  />;
+        content = <AddRemoteScreen
+            onAddRemote={addRemoteHandler}
+            onCancelRemoteAddition={cancelRemoteHandler}
+        />;
     } else if (isViewRemotesMode) {
-        content = <ViewRemotesScreen 
-                    assignNewEmployeeMode={isAssignNewEmployeeMode}
-                    onSaveNewEmployee={saveNewEmployeeHandler} 
-                    onCancelSaveNewEmployee={cancelSaveNewEmployeeHandler}
-                    remoteId={assignToRemote}
-                    remotes={remotes} 
-                    onAssignNewEmployee={assignNewEmployeeHandler}
-                    onCancelViewRemotes={cancelViewRemotesHandler} 
-                    onRemoveRemote={removeRemoteHandler} 
-                  />;
+        content = <ViewRemotesScreen
+            assignNewEmployeeMode={isAssignNewEmployeeMode}
+            onSaveNewEmployee={saveNewEmployeeHandler}
+            onCancelSaveNewEmployee={cancelSaveNewEmployeeHandler}
+            remoteId={assignToRemote}
+            remotes={remotes}
+            onAssignNewEmployee={assignNewEmployeeHandler}
+            onCancelViewRemotes={cancelViewRemotesHandler}
+            onRemoveRemote={removeRemoteHandler}
+        />;
     }
 
     return (
